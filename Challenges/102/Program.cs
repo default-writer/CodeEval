@@ -15,12 +15,6 @@ namespace Challenges
     {
         public void Main(string[] args)
         {
-            if (args == null) throw new Exception("args == null");
-            if (args.Length == 0) throw new Exception("args.Length == 0");
-            if (args.Length > 1) throw new Exception("args.Length > 1");
-            try
-            {
-                if (!File.Exists(args[0])) throw new Exception("!File.Exists(args[0])");
                 string[] strings = File.ReadAllLines(args[0]);
                 int stringsLength = 0;
                 char[] delims = new char[] {' ', '\t'};
@@ -33,11 +27,6 @@ namespace Challenges
                         Console.WriteLine(words[--wordsLength]);
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                throw;
-            }
         }
     }
     internal class Program
@@ -51,8 +40,19 @@ namespace Challenges
         {
             try
             {
-                T t= new T();
-                t.Main(args);
+                if (args == null) throw new Exception("args == null");
+                if (args.Length == 0) throw new Exception("args.Length == 0");
+                if (args.Length > 1) throw new Exception("args.Length > 1");
+                try
+                {
+                    if (!File.Exists(args[0])) throw new Exception("!File.Exists(args[0])");
+                    T t = new T();
+                    t.Main(args);
+                }
+                catch (Exception ex)
+                {
+                    throw;
+                }
             }
             catch (Exception ex)
             {
