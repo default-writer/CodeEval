@@ -24,9 +24,9 @@ namespace Challenges
                 string[] strings = File.ReadAllLines(args[0]);
                 int stringsLength = strings.Length;
                 char[] delims = new char[] {' ', '\t'};
-                while (stringsLength-- > 0)
+                while (stringsLength < strings.Length)
                 {
-                    string[] words = strings[stringsLength].Split(delims);
+                    string[] words = strings[stringsLength++].Split(delims);
                     int wordsLength = words.Length;
                     if (--wordsLength > 0)
                     {
