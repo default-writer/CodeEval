@@ -22,7 +22,7 @@ namespace Challenges
             {
                 if (!File.Exists(args[0])) throw new Exception("!File.Exists(args[0])");
                 string[] strings = File.ReadAllLines(args[0]);
-                int stringsLength = strings.Length;
+                int stringsLength = 0;
                 char[] delims = new char[] {' ', '\t'};
                 while (stringsLength < strings.Length)
                 {
