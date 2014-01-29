@@ -28,9 +28,9 @@ namespace Challenges
                 {
                     string[] words = strings[stringsLength].Split(delims);
                     int wordsLength = words.Length;
-                    if (--wordsLength >= 0)
+                    if (--wordsLength > 0)
                     {
-                        Console.WriteLine(words[wordsLength]);
+                        Console.WriteLine(words[--wordsLength]);
                     }
                 }
             }
