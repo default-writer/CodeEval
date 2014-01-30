@@ -5,9 +5,11 @@ using NUnit.Framework;
 
 #endregion
 
-namespace CodeEval {
+namespace CodeEval
+{
     [TestFixture]
-    internal class ProgramTests {
+    internal class ProgramTests
+    {
         [TestCase]
         public void Test1()
         {
@@ -217,81 +219,97 @@ namespace CodeEval {
         {
             Assert.AreEqual(Json.ParseEelement("{\"a\": [{\"id\": 81}, {\"id\": 81}]}").Text, "{\"a\": [{\"id\": 81}, {\"id\": 81}]}");
         }
+
         [TestCase]
         public void Test201()
         {
             Assert.AreEqual(Json.ParseEelement("{\"a\": [null]}").Text, "{\"a\": [null]}");
         }
+
         [TestCase]
         public void Test202()
         {
             Assert.AreEqual(Json.ParseEelement("{\"a\": [null]"), null);
         }
+
         [TestCase]
         public void Test203()
         {
             Assert.AreEqual(Json.ParseEelement("{\"a\": [null"), null);
         }
+
         [TestCase]
         public void Test204()
         {
             Assert.AreEqual(Json.ParseEelement("{\"a\": [nul"), null);
         }
+
         [TestCase]
         public void Test2051()
         {
             Assert.AreEqual(Json.ParseEelement("{\"a\": [nu"), null);
         }
+
         [TestCase]
         public void Test2052()
         {
             Assert.AreEqual(Json.ParseEelement("{\"a\": [n"), null);
         }
+
         [TestCase]
         public void Test2053()
         {
             Assert.AreEqual(Json.ParseEelement("{\"a\": ["), null);
         }
+
         [TestCase]
         public void Test206()
         {
             Assert.AreEqual(Json.ParseEelement("{\"a\": [n]"), null);
         }
+
         [TestCase]
         public void Test207()
         {
             Assert.AreEqual(Json.ParseEelement("{\"a\": [nu]"), null);
         }
+
         [TestCase]
         public void Test208()
         {
             Assert.AreEqual(Json.ParseEelement("{\"a\": [nul]}"), null);
         }
+
         [TestCase]
         public void Test205()
         {
             Assert.AreEqual(Json.ParseEelement("{\"a\": []}"), null);
         }
+
         [TestCase]
         public void Test2922()
         {
             Assert.AreEqual(Json.ParseEelement("{\"a\": [null, null]}").Text, "{\"a\": [null, null]}");
         }
+
         [TestCase]
         public void Test293()
         {
             Assert.AreEqual(Json.ParseEelement("{\"a\": [{\"id\": 81}, null]}").Text, "{\"a\": [{\"id\": 81}, null]}");
         }
+
         [TestCase]
         public void Test294()
         {
             Assert.AreEqual(Json.ParseEelement("{\"a\": \"b\"}").Text, "{\"a\": \"b\"}");
         }
+
         [TestCase]
         public void Test2931()
         {
             Assert.AreEqual(Json.ParseEelement("{\"a\": [{\"id\": 81}, null, {\"id\": 81}]}").Text, "{\"a\": [{\"id\": 81}, null, {\"id\": 81}]}");
         }
+
         [TestCase]
         public void Test221()
         {
@@ -316,6 +334,7 @@ namespace CodeEval {
         {
             Assert.AreEqual(Json.ParseEelement("{\"menu\": {\"header\": \"menu\", \"items\": [{\"id\": 70, \"label\": \"Label 70\"}, {\"id\": 85, \"label\": \"Label 85\"}, {\"id\": 93, \"label\": \"Label 93\"}, {\"id\": 2}]}}").Text, "{\"menu\": {\"header\": \"menu\", \"items\": [{\"id\": 70, \"label\": \"Label 70\"}, {\"id\": 85, \"label\": \"Label 85\"}, {\"id\": 93, \"label\": \"Label 93\"}, {\"id\": 2}]}}");
         }
+
         [TestCase]
         public void Test_11()
         {
@@ -334,6 +353,7 @@ namespace CodeEval {
         {
             Assert.AreEqual(Json.ParseEelement("{\"menu\":  {\"header\":  \"menu\",  \"items\":  [{\"id\":  70,  \"label\":  \"Label 70\"},  {\"id\":  85,  \"label\":  \"Label 85\"},  {\"id\":  93,  \"label\":  \"Label 93\"},  {\"id\":  2}]}}").Text, "{\"menu\": {\"header\": \"menu\", \"items\": [{\"id\": 70, \"label\": \"Label 70\"}, {\"id\": 85, \"label\": \"Label 85\"}, {\"id\": 93, \"label\": \"Label 93\"}, {\"id\": 2}]}}");
         }
+
         [TestCase]
         public void Test_12()
         {

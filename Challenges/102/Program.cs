@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-#region
+﻿#region
 
 using System;
 using System.Collections.Generic;
@@ -62,20 +60,27 @@ namespace Challenges
 
             internal static string ToString(char startElement, char endElement, IList<IElement> elements)
             {
-                var sb = new StringBuilder();
-                sb.Append(startElement);
-                sb.AppendFormat("{0}", elements[0].Text);
-                for (int i = 1; i < elements.Count; i++)
+                if (elements != null)
                 {
-                    sb.AppendFormat(", {0}", elements[i].Text);
+                    var sb = new StringBuilder();
+                    sb.Append(startElement);
+                    if (elements.Count > 0)
+                    {
+                        sb.AppendFormat("{0}", elements[0].Text);
+                        for (var i = 1; i < elements.Count; i++)
+                        {
+                            sb.AppendFormat(", {0}", elements[i].Text);
+                        }
+                        sb.Append(endElement);
+                        return sb.ToString();
+                    }
                 }
-                sb.Append(endElement);
-                return sb.ToString();
+                return null;
             }
 
             internal bool TryParse(int current)
             {
-                int previous = _position;
+                var previous = _position;
                 _position = current;
                 if (_input.Length > current + 1)
                 {
@@ -107,7 +112,7 @@ namespace Challenges
 
             internal static int Next(int current, char ch)
             {
-                int previous = current;
+                var previous = current;
                 while (current < _input.Length)
                 {
                     if (Is(current, ch))
@@ -126,102 +131,48 @@ namespace Challenges
             internal static int Advance(int offset)
             {
                 _position += offset;
-                int current = Next(_position);
+                var current = Next(_position);
                 _position = current;
                 return current;
             }
 
             internal static bool Any(int current, string text)
             {
-                return text.Any(t => _input[current] == t);
-            }
-
-/*
-            internal static bool Any(int current, params char[] chars)
-            {
-                for (var i = 0; i < chars.Length; i++)
+                for (var i = 0; i < text.Length; i++)
                 {
-                    if (_input[current] == chars[i]) return true;
+                    if (_input[current] == text[i])
+                    {
+                        return true;
+                    }
                 }
                 return false;
             }
-*/
+
+            internal static bool Is(int current, string text)
+            {
+                for (var i = 0; i < text.Length; i++)
+                {
+                    if (current + i >= _input.Length)
+                    {
+                        return false;
+                    }
+                    if (_input[current + i] != text[i])
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
 
             internal static bool Is(int current, char ch1)
             {
                 return _input[current] == ch1;
             }
 
-/*
-            internal static bool Any(int current, char ch1, char ch2)
-            {
-                return _input[current] == ch1 || _input[current] == ch2;
-            }
-*/
-
-/*
-            internal static bool Any(int current, char ch1, char ch2, char ch3)
-            {
-                return _input[current] == ch1 || _input[current] == ch2 || _input[current] == ch3;
-            }
-*/
-
-
             private static bool Any(int current, char ch1, char ch2, char ch3, char ch4)
             {
                 return _input[current] == ch1 || _input[current] == ch2 || _input[current] == ch3 || _input[current] == ch4;
             }
-
-
-/*
-            internal static bool Not(int current, string text)
-            {
-                for (var i = 0; i < text.Length; i++)
-                {
-                    if (_input[current + i] == text[i]) return false;
-                }
-                return true;
-            }
-*/
-
-/*
-            internal static bool Not(int current, params char[] chars)
-            {
-                for (var i = 0; i < chars.Length; i++)
-                {
-                    if (_input[current] == chars[i]) return false;
-                }
-                return true;
-            }
-*/
-
-/*
-            internal static bool Not(int current, char ch1)
-            {
-                return _input[current] != ch1;
-            }
-*/
-
-/*
-            internal static bool Not(int current, char ch1, char ch2)
-            {
-                return _input[current] != ch1 && _input[current] != ch2;
-            }
-*/
-
-/*
-            internal static bool Not(int current, char ch1, char ch2, char ch3)
-            {
-                return _input[current] != ch1 && _input[current] != ch2 && _input[current] != ch3;
-            }
-*/
-
-/*
-            internal static bool Not(int current, char ch1, char ch2, char ch3, char ch4)
-            {
-                return _input[current] != ch1 && _input[current] != ch2 && _input[current] != ch3 && _input[current] != ch4;
-            }
-*/
 
             #endregion
         }
@@ -244,16 +195,12 @@ namespace Challenges
 
             public override bool Parse()
             {
-                int current = Advance(1);
+                var current = Advance(1);
                 if (Is(_position, StartElement))
                 {
                     while (true)
                     {
                         var element = new JsonElement();
-                        if (_position + 1 >= _input.Length)
-                        {
-                            return false;
-                        }
                         if (element.TryParse(current))
                         {
                             Elements.Add(element);
@@ -273,15 +220,10 @@ namespace Challenges
                             current = Advance(1);
                             continue;
                         }
-                        if (_position + 1 >= _input.Length)
+                        var constant = new JsonConstant("null");
+                        if (constant.TryParse(_position + 1))
                         {
-                            return false;
-                        }
-                        current = Advance(1);
-                        if (Any(current, "null"))
-                        {
-                            Elements.Add(new JsonValue());
-                            _position += 3;
+                            Elements.Add(constant);
                             if (_position + 1 >= _input.Length)
                             {
                                 return false;
@@ -290,10 +232,6 @@ namespace Challenges
                             {
                                 ++_position;
                                 return true;
-                            }
-                            if (_position + 1 >= _input.Length)
-                            {
-                                return false;
                             }
                             if (!Is(_position + 1, ','))
                             {
@@ -309,13 +247,48 @@ namespace Challenges
             }
         }
 
+        private class JsonConstant : Base
+        {
+            private string _content;
+
+            public JsonConstant(string content)
+            {
+                _content = content;
+            }
+
+            public override string Text
+            {
+                get { return string.Format("{0}", _content); }
+            }
+
+            public override bool Parse()
+            {
+                var current = Advance(0);
+                var next = current;
+                if (Is(next, _content))
+                {
+                    next += _content.Length;
+                    if (next >= _input.Length)
+                    {
+                        return false;
+                    }
+                }
+                if (next > current)
+                {
+                    _position = next - 1;
+                    return true;
+                }
+                return false;
+            }
+        }
+
         private class JsonElement : JsonList
         {
             public JsonElement() : base('{', '}') {}
 
             public override bool Parse()
             {
-                int current = Advance(1);
+                var current = Advance(1);
                 if (Is(_position, StartElement))
                 {
                     while (true)
@@ -455,10 +428,10 @@ namespace Challenges
 
             public override bool Parse()
             {
-                int current = Advance(1);
+                var current = Advance(1);
                 if (Is(current, '"'))
                 {
-                    int next = Next(current + 1, '"');
+                    var next = Next(current + 1, '"');
                     if (next > current + 1)
                     {
                         _content = _input.Substring(current + 1, next - current - 1);
@@ -516,20 +489,13 @@ namespace Challenges
 
             public override string Text
             {
-                get
-                {
-                    if (_content == null)
-                    {
-                        return "null";
-                    }
-                    return string.Format("{0}", _content);
-                }
+                get { return string.Format("{0}", _content); }
             }
 
             public override bool Parse()
             {
-                int current = Advance(1);
-                int next = _position;
+                var current = Advance(1);
+                var next = _position;
                 if (next >= _input.Length)
                 {
                     return false;
@@ -593,7 +559,7 @@ namespace Challenges
             }
             catch (Exception ex)
             {
-                Exception exception = ex;
+                var exception = ex;
                 while (exception != null)
                 {
                     Console.Error.WriteLine(ex.Message);
