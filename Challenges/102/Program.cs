@@ -39,7 +39,7 @@ namespace Challenges
             _position = 0;
             if (!string.IsNullOrWhiteSpace(text))
             {
-                var element = new JsonElement();
+                var element = new JsonList();
                 var current = Advance(0);
                 if (element.TryParse(current))
                 {
@@ -168,7 +168,7 @@ namespace Challenges
             }
         }
 
-        class JsonArray : JsonList
+        class JsonArray : Collection
         {
             public JsonArray() : base('[', ']') { }
 
@@ -226,7 +226,7 @@ namespace Challenges
                         }
                         return false;
                     }
-                    var element = new JsonElement();
+                    var element = new JsonList();
                     if (element.TryParse(current))
                     {
                         current = Advance(1);
@@ -309,9 +309,9 @@ namespace Challenges
             }
         }
 
-        class JsonElement : JsonList
+        class JsonList : Collection
         {
-            public JsonElement() : base('{', '}') { }
+            public JsonList() : base('{', '}') { }
 
             public override bool Parse()
             {
@@ -400,7 +400,7 @@ namespace Challenges
                             }
                             return false;
                         }
-                        var element = new JsonElement();
+                        var element = new JsonList();
                         if (element.TryParse(current))
                         {
                             current = Advance(1);
@@ -427,14 +427,14 @@ namespace Challenges
             }
         }
 
-        abstract class JsonList : Element
+        abstract class Collection : Element
         {
             protected readonly char EndElement;
             protected readonly char StartElement;
 
             private readonly List<IElement> _elements = new List<IElement>();
 
-            protected JsonList(char startElement, char endElement)
+            protected Collection(char startElement, char endElement)
             {
                 StartElement = startElement;
                 EndElement = endElement;
