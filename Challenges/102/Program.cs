@@ -1,4 +1,7 @@
-﻿#region
+﻿using System.Collections.ObjectModel;
+using System.Linq;
+
+#region
 
 using System;
 using System.Collections.Generic;
@@ -17,6 +20,11 @@ namespace Challenges
         string Text { get; }
     }
 
+    public interface IElementCollection : IElement
+    {
+        IEnumerable<IElement> Elements { get; }         
+    }
+
     internal interface IChallenge
     {
         void Main(string[] args);
@@ -25,7 +33,7 @@ namespace Challenges
 
     public interface INamedElement : IElement
     {
-        IElement Name { get; }
+        string Name { get; }
         IElement Value { get; }
     }
     public class Json
@@ -48,6 +56,32 @@ namespace Challenges
                     {
                         return element;
                     }
+                }
+            }
+            return null;
+        }
+        public static IEnumerable<IElement> ParseMany(string text)
+        {
+            _input = text;
+            _position = 0;
+            if (!string.IsNullOrWhiteSpace(text))
+            {
+                List<IElement> list = new List<IElement>();
+                while (true)
+                {
+                    var element = new JsonList();
+                    var current = Advance(0);
+                    if (element.TryParse(current))
+                    {
+                        list.Add(element);
+                        current = Advance(1);
+                        if (End(current))
+                        {
+                            return list;
+                        }
+                        continue;
+                    }
+                    return list;
                 }
             }
             return null;
@@ -190,7 +224,7 @@ namespace Challenges
                     if (value.TryParse(current))
                     {
                         current = Advance(1);
-                        Elements.Add(value);
+                        Add(value);
                         if (End(current))
                         {
                             return false;
@@ -210,27 +244,7 @@ namespace Challenges
                     if (name.TryParse(current))
                     {
                         current = Advance(1);
-                        Elements.Add(name);
-                        if (End(current))
-                        {
-                            return false;
-                        }
-                        if (Is(current, EndElement))
-                        {
-                            return true;
-                        }
-                        if (Is(current, ','))
-                        {
-                            current = Advance(1);
-                            continue;
-                        }
-                        return false;
-                    }
-                    var element = new JsonList();
-                    if (element.TryParse(current))
-                    {
-                        current = Advance(1);
-                        Elements.Add(element);
+                        Add(name);
                         if (End(current))
                         {
                             return false;
@@ -250,7 +264,27 @@ namespace Challenges
                     if (constant.TryParse(current))
                     {
                         current = Advance(1);
-                        Elements.Add(constant);
+                        Add(constant);
+                        if (End(current))
+                        {
+                            return false;
+                        }
+                        if (Is(current, EndElement))
+                        {
+                            return true;
+                        }
+                        if (Is(current, ','))
+                        {
+                            current = Advance(1);
+                            continue;
+                        }
+                        return false;
+                    }
+                    var element = new JsonList();
+                    if (element.TryParse(current))
+                    {
+                        current = Advance(1);
+                        Add(element);
                         if (End(current))
                         {
                             return false;
@@ -344,7 +378,7 @@ namespace Challenges
                         if (value.TryParse(current))
                         {
                             current = Advance(1);
-                            Elements.Add(new JsonNamedElement(name, value));
+                            Add(new JsonNamedElement(name, value));
                             if (End(current))
                             {
                                 return false;
@@ -364,7 +398,7 @@ namespace Challenges
                         if (str.TryParse(current))
                         {
                             current = Advance(1);
-                            Elements.Add(new JsonNamedElement(name, str));
+                            Add(new JsonNamedElement(name, str));
                             if (End(current))
                             {
                                 return false;
@@ -384,7 +418,7 @@ namespace Challenges
                         if (array.TryParse(current))
                         {
                             current = Advance(1);
-                            Elements.Add(new JsonNamedElement(name, array));
+                            Add(new JsonNamedElement(name, array));
                             if (End(current))
                             {
                                 return false;
@@ -404,7 +438,7 @@ namespace Challenges
                         if (element.TryParse(current))
                         {
                             current = Advance(1);
-                            Elements.Add(new JsonNamedElement(name, element));
+                            Add(new JsonNamedElement(name, element));
                             if (End(current))
                             {
                                 return false;
@@ -427,7 +461,7 @@ namespace Challenges
             }
         }
 
-        abstract class Collection : Element
+        abstract class Collection : Element, IElementCollection
         {
             protected readonly char EndElement;
             protected readonly char StartElement;
@@ -440,9 +474,14 @@ namespace Challenges
                 EndElement = endElement;
             }
 
-            protected ICollection<IElement> Elements
+            public IEnumerable<IElement> Elements
             {
-                get { return _elements; }
+                get { return _elements.AsQueryable(); }
+            }
+
+            protected void Add(IElement element)
+            {
+                _elements.Add(element);
             }
 
             public override string Text
@@ -512,9 +551,9 @@ namespace Challenges
 
             #region Члены INamedElement
 
-            public IElement Name
+            public string Name
             {
-                get { return _name; }
+                get { return _name.Text; }
             }
 
             public IElement Value
@@ -574,7 +613,38 @@ namespace Challenges
     {
         public void Main(string[] args)
         {
-            //var strings = File.ReadAllText(args[0]);
+            if (args == null)
+            {
+                throw new Exception("args == null");
+            }
+            if (args.Length == 0)
+            {
+                throw new Exception("args.Length == 0");
+            }
+            if (args.Length > 1)
+            {
+                throw new Exception("args.Length > 1");
+            }
+            if (!File.Exists(args[0]))
+            {
+                throw new Exception("!File.Exists(args[0])");
+            }
+            var strings = File.ReadAllText(args[0]);
+            IEnumerable<IElement> query = Json.ParseMany(strings);
+            if (query != null)
+            {
+                foreach (var element in query)
+                {
+                    IElementCollection collection = element as IElementCollection;
+                    if (collection != null)
+                    {
+                        foreach (var item in collection.Elements)
+                        {
+                            
+                        }
+                    }
+                }
+            }
         }
     }
 
