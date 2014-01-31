@@ -1,7 +1,4 @@
-﻿using System.Collections.ObjectModel;
-using System.Linq;
-
-#region
+﻿#region
 
 using System;
 using System.Collections.Generic;
@@ -22,7 +19,7 @@ namespace Challenges
 
     public interface IElementCollection : IElement
     {
-        IEnumerable<IElement> Elements { get; }         
+        IEnumerable<IElement> Elements { get; }
     }
 
     internal interface IChallenge
@@ -60,31 +57,29 @@ namespace Challenges
             }
             return null;
         }
-        public static IEnumerable<IElement> ParseMany(string text)
+        public static void ParseMany(string text, IList<IElement> items)
         {
             _input = text;
             _position = 0;
             if (!string.IsNullOrWhiteSpace(text))
             {
-                List<IElement> list = new List<IElement>();
                 while (true)
                 {
                     var element = new JsonList();
                     var current = Advance(0);
                     if (element.TryParse(current))
                     {
-                        list.Add(element);
+                        items.Add(element);
                         current = Advance(1);
                         if (End(current))
                         {
-                            return list;
+                            return;
                         }
                         continue;
                     }
-                    return list;
+                    return;
                 }
             }
-            return null;
         }
 
         internal static int Next(int current)
@@ -154,7 +149,7 @@ namespace Challenges
                 if (End(current))
                 {
                     return previous;
-                }               
+                }
                 if (Is(current, ch))
                 {
                     break;
@@ -322,7 +317,7 @@ namespace Challenges
             public override bool Parse()
             {
                 var current = Advance(0);
-                var start = current;  
+                var start = current;
                 if (End(current))
                 {
                     return false;
@@ -476,7 +471,7 @@ namespace Challenges
 
             public IEnumerable<IElement> Elements
             {
-                get { return _elements.AsQueryable(); }
+                get { return _elements; }
             }
 
             protected void Add(IElement element)
@@ -570,6 +565,11 @@ namespace Challenges
                 get { return string.Format("{0}: {1}", _name.Text, _value.Text); }
             }
 
+            public override string ToString()
+            {
+                return Text;
+            }
+
             #endregion
         }
 
@@ -630,20 +630,73 @@ namespace Challenges
                 throw new Exception("!File.Exists(args[0])");
             }
             var strings = File.ReadAllText(args[0]);
-            IEnumerable<IElement> query = Json.ParseMany(strings);
-            if (query != null)
+            List<IElement> elements = new List<IElement>();
+            Json.ParseMany(strings, elements);
+            foreach (var e in elements)
             {
-                foreach (var element in query)
+                int sum = 0;
+                IElementCollection query = e as IElementCollection;
+                if (query != null)
                 {
-                    IElementCollection collection = element as IElementCollection;
-                    if (collection != null)
+                    foreach (var element in query.Elements)
                     {
-                        foreach (var item in collection.Elements)
+                        INamedElement n = element as INamedElement;
+                        if (n != null)
                         {
-                            
+                            IElementCollection collection1 = n.Value as IElementCollection;
+                            if (collection1 != null)
+                            {
+                                foreach (var element2 in collection1.Elements)
+                                {
+                                    INamedElement items = element2 as INamedElement;
+                                    if (items != null)
+                                    {
+                                        if (items.Name == "\"items\"")
+                                        {
+                                            IElementCollection colleciton2 = items.Value as IElementCollection;
+                                            if (colleciton2 != null)
+                                            {
+                                                foreach (var element3 in colleciton2.Elements)
+                                                {
+                                                    IElementCollection collection3 = element3 as IElementCollection;
+                                                    if (collection3 != null)
+                                                    {
+                                                        int localsum = 0;
+                                                        bool found = false;
+                                                        foreach (var element4 in collection3.Elements)
+                                                        {
+                                                            INamedElement id = element4 as INamedElement;
+                                                            if (id != null)
+                                                            {
+                                                                if (id.Name == "\"id\"")
+                                                                {
+                                                                    int value;
+                                                                    if (int.TryParse(id.Value.Text, out value))
+                                                                    {
+                                                                        localsum += value;
+                                                                    }
+                                                                }
+                                                                if (id.Name == "\"label\"")
+                                                                {
+                                                                    found = true;
+                                                                }
+                                                            }
+                                                        }
+                                                        if (found)
+                                                        {
+                                                            sum += localsum;
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
+                Console.WriteLine(sum);
             }
         }
     }
