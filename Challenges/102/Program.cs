@@ -10,33 +10,41 @@ using System.Text;
 // ReSharper disable CheckNamespace
 
 namespace Challenges
-    // ReSharper restore CheckNamespace
+// ReSharper restore CheckNamespace
 {
+    public interface IElement
+    {
+        string Text { get; }
+    }
+
     internal interface IChallenge
     {
         void Main(string[] args);
     }
 
-    public static class Json
+
+    public interface INamedElement : IElement
+    {
+        IElement Name { get; }
+        IElement Value { get; }
+    }
+    public class Json
     {
         private static string _input;
         private static int _position = -1;
 
-        // grammar:
-
-        // elements =  (element){1,} 
-        // element = "{" name : ("[" (( element ){1,} | null) "]" | element | value) "}"
-
-        public static IElement ParseEelement(string text)
+        public static IElement Parse(string text)
         {
             _input = text;
-            _position = -1;
+            _position = 0;
             if (!string.IsNullOrWhiteSpace(text))
             {
                 var element = new JsonElement();
-                if (element.TryParse(_position))
+                var current = Advance(0);
+                if (element.TryParse(current))
                 {
-                    if (text.Length == _position + 1)
+                    current = Advance(1);
+                    if (current == _input.Length)
                     {
                         return element;
                     }
@@ -45,7 +53,95 @@ namespace Challenges
             return null;
         }
 
-        private abstract class Base : IElement
+        internal static int Next(int current)
+        {
+            while (current < _input.Length)
+            {
+                if (!Any(current, ' ', '\r', '\n', '\t') || current + 1 == _input.Length)
+                {
+                    break;
+                }
+                current++;
+            }
+            return current;
+        }
+
+        internal static int Advance(int offset)
+        {
+            _position += offset;
+            var current = Next(_position);
+            _position = current;
+            return current;
+        }
+
+        internal static bool End(int current)
+        {
+            return !(current < _input.Length);
+        }
+
+        internal static bool Any(int current, string text)
+        {
+            for (var i = 0; i < text.Length; i++)
+            {
+                if (_input[current] == text[i])
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        internal static bool Is(int current, string text)
+        {
+            for (var i = 0; i < text.Length; i++)
+            {
+                if (End(current + i))
+                {
+                    return false;
+                }
+                if (_input[current + i] != text[i])
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        internal static string Substring(int startIndex, int count)
+        {
+            return _input.Substring(startIndex, count);
+        }
+
+        internal static int Next(int current, char ch)
+        {
+            var previous = current;
+            while (current < _input.Length)
+            {
+                if (End(current))
+                {
+                    return previous;
+                }               
+                if (Is(current, ch))
+                {
+                    break;
+                }
+                current++;
+            }
+            return current;
+        }
+
+        internal static bool Is(int current, char ch1)
+        {
+            return _input[current] == ch1;
+        }
+
+        private static bool Any(int current, char ch1, char ch2, char ch3, char ch4)
+        {
+            return _input[current] == ch1 || _input[current] == ch2 || _input[current] == ch3 || _input[current] == ch4;
+        }
+
+
+        public abstract class Element : IElement
         {
             public abstract string Text { get; }
 
@@ -56,200 +152,128 @@ namespace Challenges
 
             public abstract bool Parse();
 
-            #region  static methods
-
-            internal static string ToString(char startElement, char endElement, IList<IElement> elements)
-            {
-                if (elements != null)
-                {
-                    var sb = new StringBuilder();
-                    sb.Append(startElement);
-                    if (elements.Count > 0)
-                    {
-                        sb.AppendFormat("{0}", elements[0].Text);
-                        for (var i = 1; i < elements.Count; i++)
-                        {
-                            sb.AppendFormat(", {0}", elements[i].Text);
-                        }
-                        sb.Append(endElement);
-                        return sb.ToString();
-                    }
-                }
-                return null;
-            }
-
             internal bool TryParse(int current)
             {
                 var previous = _position;
                 _position = current;
-                if (_input.Length > current + 1)
+                if (!End(current))
                 {
-                    // trial
                     if (Parse())
                     {
-                        // advance
                         return true;
                     }
-                    //error
                 }
-                // rollback
                 _position = previous;
                 return false;
             }
-
-            private static int Next(int current)
-            {
-                while (current < _input.Length)
-                {
-                    if (!Any(current, ' ', '\r', '\n', '\t') || current + 1 == _input.Length)
-                    {
-                        break;
-                    }
-                    current++;
-                }
-                return current;
-            }
-
-            internal static int Next(int current, char ch)
-            {
-                var previous = current;
-                while (current < _input.Length)
-                {
-                    if (Is(current, ch))
-                    {
-                        break;
-                    }
-                    if (current + 1 == _input.Length)
-                    {
-                        return previous;
-                    }
-                    current++;
-                }
-                return current;
-            }
-
-            internal static int Advance(int offset)
-            {
-                _position += offset;
-                var current = Next(_position);
-                _position = current;
-                return current;
-            }
-
-            internal static bool Any(int current, string text)
-            {
-                for (var i = 0; i < text.Length; i++)
-                {
-                    if (_input[current] == text[i])
-                    {
-                        return true;
-                    }
-                }
-                return false;
-            }
-
-            internal static bool Is(int current, string text)
-            {
-                for (var i = 0; i < text.Length; i++)
-                {
-                    if (current + i >= _input.Length)
-                    {
-                        return false;
-                    }
-                    if (_input[current + i] != text[i])
-                    {
-                        return false;
-                    }
-                }
-                return true;
-            }
-
-            internal static bool Is(int current, char ch1)
-            {
-                return _input[current] == ch1;
-            }
-
-            private static bool Any(int current, char ch1, char ch2, char ch3, char ch4)
-            {
-                return _input[current] == ch1 || _input[current] == ch2 || _input[current] == ch3 || _input[current] == ch4;
-            }
-
-            #endregion
         }
 
-        public interface IElement
+        class JsonArray : JsonList
         {
-            string Text { get; }
-        }
-
-
-        public interface INamedElement : IElement
-        {
-            IElement Name { get; }
-            IElement Value { get; }
-        }
-
-        private class JsonArray : JsonList
-        {
-            public JsonArray() : base('[', ']') {}
+            public JsonArray() : base('[', ']') { }
 
             public override bool Parse()
             {
-                var current = Advance(1);
-                if (Is(_position, StartElement))
+                var current = Advance(0);
+                if (End(current))
                 {
-                    while (true)
+                    return false;
+                }
+                if (!Is(current, StartElement))
+                {
+                    return false;
+                }
+                current = Advance(1);
+                while (true)
+                {
+                    var value = new JsonValue();
+                    if (value.TryParse(current))
                     {
-                        var element = new JsonElement();
-                        if (element.TryParse(current))
+                        current = Advance(1);
+                        Elements.Add(value);
+                        if (End(current))
                         {
-                            Elements.Add(element);
-                            if (_position + 1 >= _input.Length)
-                            {
-                                return false;
-                            }
-                            if (Is(_position + 1, EndElement))
-                            {
-                                ++_position;
-                                return true;
-                            }
-                            if (!Is(_position + 1, ','))
-                            {
-                                return false;
-                            }
-                            current = Advance(1);
-                            continue;
+                            return false;
                         }
-                        var constant = new JsonConstant("null");
-                        if (constant.TryParse(_position + 1))
+                        if (Is(current, EndElement))
                         {
-                            Elements.Add(constant);
-                            if (_position + 1 >= _input.Length)
-                            {
-                                return false;
-                            }
-                            if (Is(_position + 1, EndElement))
-                            {
-                                ++_position;
-                                return true;
-                            }
-                            if (!Is(_position + 1, ','))
-                            {
-                                return false;
-                            }
+                            return true;
+                        }
+                        if (Is(current, ','))
+                        {
                             current = Advance(1);
                             continue;
                         }
                         return false;
                     }
+                    var name = new JsonName();
+                    if (name.TryParse(current))
+                    {
+                        current = Advance(1);
+                        Elements.Add(name);
+                        if (End(current))
+                        {
+                            return false;
+                        }
+                        if (Is(current, EndElement))
+                        {
+                            return true;
+                        }
+                        if (Is(current, ','))
+                        {
+                            current = Advance(1);
+                            continue;
+                        }
+                        return false;
+                    }
+                    var element = new JsonElement();
+                    if (element.TryParse(current))
+                    {
+                        current = Advance(1);
+                        Elements.Add(element);
+                        if (End(current))
+                        {
+                            return false;
+                        }
+                        if (Is(current, EndElement))
+                        {
+                            return true;
+                        }
+                        if (Is(current, ','))
+                        {
+                            current = Advance(1);
+                            continue;
+                        }
+                        return false;
+                    }
+                    var constant = new JsonConstant("null");
+                    if (constant.TryParse(current))
+                    {
+                        current = Advance(1);
+                        Elements.Add(constant);
+                        if (End(current))
+                        {
+                            return false;
+                        }
+                        if (Is(current, EndElement))
+                        {
+                            return true;
+                        }
+                        if (Is(current, ','))
+                        {
+                            current = Advance(1);
+                            continue;
+                        }
+                        return false;
+                    }
+                    return false;
                 }
-                return false;
             }
         }
 
-        private class JsonConstant : Base
+        class JsonConstant : Element
         {
-            private string _content;
+            private readonly string _content;
 
             public JsonConstant(string content)
             {
@@ -264,136 +288,146 @@ namespace Challenges
             public override bool Parse()
             {
                 var current = Advance(0);
-                var next = current;
-                if (Is(next, _content))
+                var start = current;  
+                if (End(current))
                 {
-                    next += _content.Length;
-                    if (next >= _input.Length)
+                    return false;
+                }
+                if (Is(current, _content))
+                {
+                    current = Advance(_content.Length - 1);
+                    if (End(current))
                     {
                         return false;
                     }
                 }
-                if (next > current)
+                if (current > start)
                 {
-                    _position = next - 1;
                     return true;
                 }
                 return false;
             }
         }
 
-        private class JsonElement : JsonList
+        class JsonElement : JsonList
         {
-            public JsonElement() : base('{', '}') {}
+            public JsonElement() : base('{', '}') { }
 
             public override bool Parse()
             {
-                var current = Advance(1);
-                if (Is(_position, StartElement))
+                var current = Advance(0);
+                if (End(current))
                 {
-                    while (true)
+                    return false;
+                }
+                if (!Is(current, StartElement))
+                {
+                    return false;
+                }
+                current = Advance(1);
+                while (true)
+                {
+                    var name = new JsonName();
+                    if (!name.TryParse(current))
                     {
-                        var name = new JsonName();
-                        if (!name.TryParse(current))
+                        return false;
+                    }
+                    current = Advance(1);
+                    if (End(current))
+                    {
+                        return false;
+                    }
+                    if (Is(current, ':'))
+                    {
+                        current = Advance(1);
+                        var value = new JsonValue();
+                        if (value.TryParse(current))
                         {
-                            return false;
-                        }
-                        if (_position + 1 >= _input.Length)
-                        {
-                            return false;
-                        }
-                        if (!Is(_position + 1, ':'))
-                        {
+                            current = Advance(1);
+                            Elements.Add(new JsonNamedElement(name, value));
+                            if (End(current))
+                            {
+                                return false;
+                            }
+                            if (Is(current, EndElement))
+                            {
+                                return true;
+                            }
+                            if (Is(current, ','))
+                            {
+                                current = Advance(1);
+                                continue;
+                            }
                             return false;
                         }
                         var str = new JsonName();
-                        if (str.TryParse(_position + 1))
+                        if (str.TryParse(current))
                         {
+                            current = Advance(1);
                             Elements.Add(new JsonNamedElement(name, str));
-                            if (_position + 1 >= _input.Length)
+                            if (End(current))
                             {
                                 return false;
                             }
-                            if (Is(_position + 1, EndElement))
+                            if (Is(current, EndElement))
                             {
-                                ++_position;
                                 return true;
                             }
-                            if (!Is(_position + 1, ','))
+                            if (Is(current, ','))
                             {
-                                return false;
+                                current = Advance(1);
+                                continue;
                             }
-                            current = Advance(1);
-                            continue;
-                        }
-                        var value = new JsonValue();
-                        if (value.TryParse(_position + 1))
-                        {
-                            Elements.Add(new JsonNamedElement(name, value));
-                            if (_position + 1 >= _input.Length)
-                            {
-                                return false;
-                            }
-                            if (Is(_position + 1, EndElement))
-                            {
-                                ++_position;
-                                return true;
-                            }
-                            if (!Is(_position + 1, ','))
-                            {
-                                return false;
-                            }
-                            current = Advance(1);
-                            continue;
-                        }
-                        var element = new JsonElement();
-                        if (element.TryParse(_position + 1))
-                        {
-                            Elements.Add(new JsonNamedElement(name, element));
-                            if (_position + 1 >= _input.Length)
-                            {
-                                return false;
-                            }
-                            if (Is(_position + 1, EndElement))
-                            {
-                                ++_position;
-                                return true;
-                            }
-                            if (!Is(_position + 1, ','))
-                            {
-                                return false;
-                            }
-                            current = Advance(1);
-                            continue;
+                            return false;
                         }
                         var array = new JsonArray();
-                        if (array.TryParse(_position + 1))
+                        if (array.TryParse(current))
                         {
+                            current = Advance(1);
                             Elements.Add(new JsonNamedElement(name, array));
-                            if (_position + 1 >= _input.Length)
+                            if (End(current))
                             {
                                 return false;
                             }
-                            if (Is(_position + 1, EndElement))
+                            if (Is(current, EndElement))
                             {
-                                ++_position;
                                 return true;
                             }
-                            if (!Is(_position + 1, ','))
+                            if (Is(current, ','))
+                            {
+                                current = Advance(1);
+                                continue;
+                            }
+                            return false;
+                        }
+                        var element = new JsonElement();
+                        if (element.TryParse(current))
+                        {
+                            current = Advance(1);
+                            Elements.Add(new JsonNamedElement(name, element));
+                            if (End(current))
                             {
                                 return false;
                             }
-                            current = Advance(1);
-                            continue;
+                            if (Is(current, EndElement))
+                            {
+                                return true;
+                            }
+                            if (Is(current, ','))
+                            {
+                                current = Advance(1);
+                                continue;
+                            }
+                            return false;
                         }
                         return false;
                     }
+                    return false;
                 }
-                return false;
             }
         }
 
-        private abstract class JsonList : Base
+        abstract class JsonList : Element
         {
             protected readonly char EndElement;
             protected readonly char StartElement;
@@ -413,11 +447,29 @@ namespace Challenges
 
             public override string Text
             {
-                get { return ToString(StartElement, EndElement, _elements); }
+                get
+                {
+                    if (_elements != null)
+                    {
+                        var sb = new StringBuilder();
+                        sb.Append(StartElement);
+                        if (_elements.Count > 0)
+                        {
+                            sb.AppendFormat("{0}", _elements[0].Text);
+                            for (var i = 1; i < _elements.Count; i++)
+                            {
+                                sb.AppendFormat(", {0}", _elements[i].Text);
+                            }
+                            sb.Append(EndElement);
+                            return sb.ToString();
+                        }
+                    }
+                    return null;
+                }
             }
         }
 
-        private class JsonName : Base
+        class JsonName : Element
         {
             private string _content;
 
@@ -428,14 +480,18 @@ namespace Challenges
 
             public override bool Parse()
             {
-                var current = Advance(1);
+                var current = Advance(0);
+                if (End(current))
+                {
+                    return false;
+                }
                 if (Is(current, '"'))
                 {
-                    var next = Next(current + 1, '"');
-                    if (next > current + 1)
+                    var next = Next(current + 1, '"') - 1;
+                    if (next > current)
                     {
-                        _content = _input.Substring(current + 1, next - current - 1);
-                        _position = next;
+                        _content = Substring(current + 1, next - current);
+                        Advance(next - current + 1);
                         return true;
                     }
                 }
@@ -443,12 +499,12 @@ namespace Challenges
             }
         }
 
-        private class JsonNamedElement : INamedElement
+        class JsonNamedElement : INamedElement
         {
-            private readonly JsonName _name;
+            private readonly IElement _name;
             private readonly IElement _value;
 
-            public JsonNamedElement(JsonName name, IElement value)
+            public JsonNamedElement(IElement name, IElement value)
             {
                 _name = name;
                 _value = value;
@@ -478,7 +534,7 @@ namespace Challenges
             #endregion
         }
 
-        private class JsonValue : Base
+        class JsonValue : Element
         {
             private string _content;
 
@@ -489,24 +545,24 @@ namespace Challenges
 
             public override bool Parse()
             {
-                var current = Advance(1);
-                var next = _position;
-                if (next >= _input.Length)
+                var current = Advance(0);
+                var start = current;
+                if (End(current))
                 {
                     return false;
                 }
-                while (Any(next, "0123456789"))
+                while (Any(current, "0123456789"))
                 {
-                    ++next;
-                    if (next >= _input.Length)
+                    current++;
+                    if (End(current))
                     {
                         return false;
                     }
                 }
-                if (next > current)
+                if (current > start)
                 {
-                    _content = _input.Substring(current, next - current);
-                    _position = next - 1;
+                    _content = Substring(start, current - start);
+                    Advance(current - start - 1);
                     return true;
                 }
                 return false;
