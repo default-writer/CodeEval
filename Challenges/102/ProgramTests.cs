@@ -93,6 +93,11 @@ namespace CodeEval
         {
             Assert.AreEqual(Json.ParseEelement("{\"a\": }"), null);
         }
+        [TestCase]
+        public void Test121()
+        {
+            Assert.AreEqual(Json.ParseEelement("{\"a\": [\"b\": ]}"), null);
+        }
 
         [TestCase]
         public void Test13()
@@ -314,6 +319,101 @@ namespace CodeEval
         public void Test221()
         {
             Assert.AreEqual(Json.ParseEelement("{\"a\": {\"b\": 2, \"c\": 3}}").Text, "{\"a\": {\"b\": 2, \"c\": 3}}");
+        }
+
+        [TestCase]
+        public void Test2211()
+        {
+            Assert.AreEqual(Json.ParseEelement("{\"a\": {\"b\": 2. \"c\": 3}}"), null);
+        }
+        [TestCase]
+        public void Test2212()
+        {
+            Assert.AreEqual(Json.ParseEelement("{\"a\": {\"b\": 2. \"c\": 3"), null);
+        }
+        [TestCase]
+        public void Test2213()
+        {
+            Assert.AreEqual(Json.ParseEelement("{\"a\": {\"b\": 2, \"c\": 3}"), null);
+        }
+        [TestCase]
+        public void Test22131()
+        {
+            Assert.AreEqual(Json.ParseEelement("{\"a\": \"b\""), null);
+        }
+        [TestCase]
+        public void Test2214()
+        {
+            Assert.AreEqual(Json.ParseEelement("{\"a\": "), null);
+        }
+        [TestCase]
+        public void Test22111()
+        {
+            Assert.AreEqual(Json.ParseEelement("{\"a\": \"b\""), null);
+        }
+        [TestCase]
+        public void Test22112()
+        {
+            Assert.AreEqual(Json.ParseEelement("{\"a\": \"b\" "), null);
+        }
+        [TestCase]
+        public void Test221111()
+        {
+            Assert.AreEqual(Json.ParseEelement("{\"a\": \"b\","), null);
+        }
+        public void Test2211111()
+        {
+            Assert.AreEqual(Json.ParseEelement("{\"a\": \"b\" ,"), null);
+        }
+        [TestCase]
+        public void Test221112()
+        {
+            Assert.AreEqual(Json.ParseEelement("{\"a\": \"b\"."), null);
+        }
+        [TestCase]
+        public void Test2211121()
+        {
+            Assert.AreEqual(Json.ParseEelement("{\"a\": \"b\" ."), null);
+        }
+        [TestCase]
+        public void Test221122()
+        {
+            Assert.AreEqual(Json.ParseEelement("{\"a\": {\"b\": 1}"), null);
+        }
+        [TestCase]
+        public void Test221123()
+        {
+            Assert.AreEqual(Json.ParseEelement("{\"a\": {\"b\": 1} "), null);
+        }
+        [TestCase]
+        public void Test2211141()
+        {
+            Assert.AreEqual(Json.ParseEelement("{\"a\": {\"b\": 1},"), null);
+        }
+        [TestCase]
+        public void Test2211142()
+        {
+            Assert.AreEqual(Json.ParseEelement("{\"a\": {\"b\": 1} ,"), null);
+        }
+        [TestCase]
+        public void Test221115()
+        {
+            Assert.AreEqual(Json.ParseEelement("{\"a\": {\"b\": 1}."), null);
+        }
+        [TestCase]
+        public void Test2211151()
+        {
+            Assert.AreEqual(Json.ParseEelement("{\"a\": {\"b\": 1} ."), null);
+        }
+        [TestCase]
+        public void Test2215()
+        {
+            Assert.AreEqual(Json.ParseEelement("{\"a\""), null);
+        }
+        [TestCase]
+        public void Test2216()
+        {
+            Assert.AreEqual(Json.ParseEelement("{\"a\": {\"b\": 2, \"c\": 3"), null);
         }
 
         [TestCase]

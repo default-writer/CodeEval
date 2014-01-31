@@ -475,11 +475,6 @@ namespace Challenges
                 get { return string.Format("{0}: {1}", _name.Text, _value.Text); }
             }
 
-            public override string ToString()
-            {
-                return Text;
-            }
-
             #endregion
         }
 
