@@ -110,11 +110,14 @@ namespace Challenges
 
         internal static bool Any(int current, string text)
         {
-            for (var i = 0; i < text.Length; i++)
+            if (current < _input.Length)
             {
-                if (_input[current] == text[i])
+                for (var i = 0; i < text.Length; i++)
                 {
-                    return true;
+                    if (_input[current] == text[i])
+                    {
+                        return true;
+                    }
                 }
             }
             return false;
@@ -124,11 +127,7 @@ namespace Challenges
         {
             for (var i = 0; i < text.Length; i++)
             {
-                if (End(current + i))
-                {
-                    return false;
-                }
-                if (_input[current + i] != text[i])
+                if (Not(current + i, text[i]))
                 {
                     return false;
                 }
@@ -146,22 +145,23 @@ namespace Challenges
             var previous = current;
             while (current < _input.Length)
             {
-                if (End(current))
-                {
-                    return previous;
-                }
                 if (Is(current, ch))
                 {
-                    break;
+                    return current;
                 }
                 current++;
             }
-            return current;
+            return previous;
         }
 
         internal static bool Is(int current, char ch1)
         {
-            return _input[current] == ch1;
+            return current < _input.Length&& _input[current] == ch1;
+        }
+
+        internal static bool Not(int current, char ch1)
+        {
+            return current < _input.Length && _input[current] != ch1;
         }
 
         private static bool Any(int current, char ch1, char ch2, char ch3, char ch4)
@@ -204,11 +204,7 @@ namespace Challenges
             public override bool Parse()
             {
                 var current = Advance(0);
-                if (End(current))
-                {
-                    return false;
-                }
-                if (!Is(current, StartElement))
+                if (Not(current, Open))
                 {
                     return false;
                 }
@@ -220,80 +216,48 @@ namespace Challenges
                     {
                         current = Advance(1);
                         Add(value);
-                        if (End(current))
-                        {
-                            return false;
-                        }
-                        if (Is(current, EndElement))
-                        {
-                            return true;
-                        }
                         if (Is(current, ','))
                         {
                             current = Advance(1);
                             continue;
                         }
-                        return false;
+                        return Is(current, Close);
                     }
                     var name = new JsonName();
                     if (name.TryParse(current))
                     {
                         current = Advance(1);
                         Add(name);
-                        if (End(current))
-                        {
-                            return false;
-                        }
-                        if (Is(current, EndElement))
-                        {
-                            return true;
-                        }
                         if (Is(current, ','))
                         {
                             current = Advance(1);
                             continue;
                         }
-                        return false;
+                        return Is(current, Close);
                     }
                     var constant = new JsonConstant("null");
                     if (constant.TryParse(current))
                     {
                         current = Advance(1);
                         Add(constant);
-                        if (End(current))
-                        {
-                            return false;
-                        }
-                        if (Is(current, EndElement))
-                        {
-                            return true;
-                        }
                         if (Is(current, ','))
                         {
                             current = Advance(1);
                             continue;
                         }
-                        return false;
+                        return Is(current, Close);
                     }
                     var element = new JsonList();
                     if (element.TryParse(current))
                     {
                         current = Advance(1);
                         Add(element);
-                        if (End(current))
-                        {
-                            return false;
-                        }
-                        if (Is(current, EndElement))
-                        {
-                            return true;
-                        }
                         if (Is(current, ','))
                         {
                             current = Advance(1);
                             continue;
                         }
-                        return false;
+                        return Is(current, Close);
                     }
                     return false;
                 }
@@ -317,21 +281,9 @@ namespace Challenges
             public override bool Parse()
             {
                 var current = Advance(0);
-                var start = current;
-                if (End(current))
-                {
-                    return false;
-                }
                 if (Is(current, _content))
                 {
-                    current = Advance(_content.Length - 1);
-                    if (End(current))
-                    {
-                        return false;
-                    }
-                }
-                if (current > start)
-                {
+                    Advance(_content.Length - 1);
                     return true;
                 }
                 return false;
@@ -345,11 +297,7 @@ namespace Challenges
             public override bool Parse()
             {
                 var current = Advance(0);
-                if (End(current))
-                {
-                    return false;
-                }
-                if (!Is(current, StartElement))
+                if (Not(current, Open))
                 {
                     return false;
                 }
@@ -362,10 +310,6 @@ namespace Challenges
                         return false;
                     }
                     current = Advance(1);
-                    if (End(current))
-                    {
-                        return false;
-                    }
                     if (Is(current, ':'))
                     {
                         current = Advance(1);
@@ -374,80 +318,48 @@ namespace Challenges
                         {
                             current = Advance(1);
                             Add(new JsonNamedElement(name, value));
-                            if (End(current))
-                            {
-                                return false;
-                            }
-                            if (Is(current, EndElement))
-                            {
-                                return true;
-                            }
                             if (Is(current, ','))
                             {
                                 current = Advance(1);
                                 continue;
                             }
-                            return false;
+                            return Is(current, Close);
                         }
                         var str = new JsonName();
                         if (str.TryParse(current))
                         {
                             current = Advance(1);
                             Add(new JsonNamedElement(name, str));
-                            if (End(current))
-                            {
-                                return false;
-                            }
-                            if (Is(current, EndElement))
-                            {
-                                return true;
-                            }
                             if (Is(current, ','))
                             {
                                 current = Advance(1);
                                 continue;
                             }
-                            return false;
+                            return Is(current, Close);
                         }
                         var array = new JsonArray();
                         if (array.TryParse(current))
                         {
                             current = Advance(1);
                             Add(new JsonNamedElement(name, array));
-                            if (End(current))
-                            {
-                                return false;
-                            }
-                            if (Is(current, EndElement))
-                            {
-                                return true;
-                            }
                             if (Is(current, ','))
                             {
                                 current = Advance(1);
                                 continue;
                             }
-                            return false;
+                            return Is(current, Close);
                         }
                         var element = new JsonList();
                         if (element.TryParse(current))
                         {
                             current = Advance(1);
                             Add(new JsonNamedElement(name, element));
-                            if (End(current))
-                            {
-                                return false;
-                            }
-                            if (Is(current, EndElement))
-                            {
-                                return true;
-                            }
                             if (Is(current, ','))
                             {
                                 current = Advance(1);
                                 continue;
                             }
-                            return false;
+                            return Is(current, Close);
                         }
                         return false;
                     }
@@ -458,15 +370,15 @@ namespace Challenges
 
         abstract class Collection : Element, IElementCollection
         {
-            protected readonly char EndElement;
-            protected readonly char StartElement;
+            protected readonly char Close;
+            protected readonly char Open;
 
             private readonly List<IElement> _elements = new List<IElement>();
 
-            protected Collection(char startElement, char endElement)
+            protected Collection(char open, char close)
             {
-                StartElement = startElement;
-                EndElement = endElement;
+                Open = open;
+                Close = close;
             }
 
             public IEnumerable<IElement> Elements
@@ -486,7 +398,7 @@ namespace Challenges
                     if (_elements != null)
                     {
                         var sb = new StringBuilder();
-                        sb.Append(StartElement);
+                        sb.Append(Open);
                         if (_elements.Count > 0)
                         {
                             sb.AppendFormat("{0}", _elements[0].Text);
@@ -494,7 +406,7 @@ namespace Challenges
                             {
                                 sb.AppendFormat(", {0}", _elements[i].Text);
                             }
-                            sb.Append(EndElement);
+                            sb.Append(Close);
                             return sb.ToString();
                         }
                     }
@@ -515,10 +427,6 @@ namespace Challenges
             public override bool Parse()
             {
                 var current = Advance(0);
-                if (End(current))
-                {
-                    return false;
-                }
                 if (Is(current, '"'))
                 {
                     var next = Next(current + 1, '"') - 1;
@@ -586,10 +494,6 @@ namespace Challenges
             {
                 var current = Advance(0);
                 var start = current;
-                if (End(current))
-                {
-                    return false;
-                }
                 while (Any(current, "0123456789"))
                 {
                     current++;
