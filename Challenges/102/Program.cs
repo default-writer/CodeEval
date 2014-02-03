@@ -156,7 +156,7 @@ namespace Challenges
 
         internal static bool Is(int current, char ch1)
         {
-            return current < _input.Length&& _input[current] == ch1;
+            return current < _input.Length && _input[current] == ch1;
         }
 
         internal static bool Not(int current, char ch1)
@@ -395,22 +395,18 @@ namespace Challenges
             {
                 get
                 {
-                    if (_elements != null)
+                    var sb = new StringBuilder();
+                    sb.Append(Open);
+                    if (_elements.Count > 0)
                     {
-                        var sb = new StringBuilder();
-                        sb.Append(Open);
-                        if (_elements.Count > 0)
+                        sb.AppendFormat("{0}", _elements[0].Text);
+                        for (var i = 1; i < _elements.Count; i++)
                         {
-                            sb.AppendFormat("{0}", _elements[0].Text);
-                            for (var i = 1; i < _elements.Count; i++)
-                            {
-                                sb.AppendFormat(", {0}", _elements[i].Text);
-                            }
-                            sb.Append(Close);
-                            return sb.ToString();
+                            sb.AppendFormat(", {0}", _elements[i].Text);
                         }
+                        sb.Append(Close);
                     }
-                    return null;
+                    return sb.ToString();
                 }
             }
         }
