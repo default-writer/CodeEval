@@ -1,4 +1,6 @@
-﻿#region
+﻿using System.Linq;
+
+#region
 
 using System;
 using System.Collections.Generic;
@@ -69,8 +71,8 @@ namespace Challenges
                     var current = Advance(0);
                     if (element.TryParse(current))
                     {
-                        items.Add(element);
                         current = Advance(1);
+                        items.Add(element);
                         if (End(current))
                         {
                             return;
@@ -110,29 +112,12 @@ namespace Challenges
 
         internal static bool Any(int current, string text)
         {
-            if (current < _input.Length)
-            {
-                for (var i = 0; i < text.Length; i++)
-                {
-                    if (_input[current] == text[i])
-                    {
-                        return true;
-                    }
-                }
-            }
-            return false;
+            return current < _input.Length && text.Any(t => _input[current] == t);
         }
 
         internal static bool Is(int current, string text)
         {
-            for (var i = 0; i < text.Length; i++)
-            {
-                if (Not(current + i, text[i]))
-                {
-                    return false;
-                }
-            }
-            return true;
+            return !text.Where((t, i) => Not(current + i, t)).Any();
         }
 
         internal static string Substring(int startIndex, int count)
@@ -534,64 +519,68 @@ namespace Challenges
             Json.ParseMany(strings, elements);
             foreach (var e in elements)
             {
-                int sum = 0;
-                IElementCollection query = e as IElementCollection;
-                if (query != null)
+                var query = e as IElementCollection;
+                if (query == null)
                 {
-                    foreach (var element in query.Elements)
+                    continue;
+                }
+                int sum = 0;
+                foreach (var element in query.Elements)
+                {
+                    var n = element as INamedElement;
+                    if (n == null)
                     {
-                        INamedElement n = element as INamedElement;
-                        if (n != null)
+                        continue;
+                    }
+                    var collection1 = n.Value as IElementCollection;
+                    if (collection1 == null)
+                    {
+                        continue;
+                    }
+                    foreach (var element2 in collection1.Elements)
+                    {
+                        var items = element2 as INamedElement;
+                        if (items == null || items.Name != "\"items\"")
                         {
-                            IElementCollection collection1 = n.Value as IElementCollection;
-                            if (collection1 != null)
+                            continue;
+                        }
+                        var colleciton2 = items.Value as IElementCollection;
+                        if (colleciton2 == null)
+                        {
+                            continue;
+                        }
+                        foreach (var element3 in colleciton2.Elements)
+                        {
+                            IElementCollection collection3 = element3 as IElementCollection;
+                            if (collection3 == null)
                             {
-                                foreach (var element2 in collection1.Elements)
+                                continue;
+                            }
+                            int localsum = 0;
+                            bool found = false;
+                            foreach (var element4 in collection3.Elements)
+                            {
+                                INamedElement id = element4 as INamedElement;
+                                if (id == null)
                                 {
-                                    INamedElement items = element2 as INamedElement;
-                                    if (items != null)
+                                    continue;
+                                }
+                                if (id.Name == "\"id\"")
+                                {
+                                    int value;
+                                    if (int.TryParse(id.Value.Text, out value))
                                     {
-                                        if (items.Name == "\"items\"")
-                                        {
-                                            IElementCollection colleciton2 = items.Value as IElementCollection;
-                                            if (colleciton2 != null)
-                                            {
-                                                foreach (var element3 in colleciton2.Elements)
-                                                {
-                                                    IElementCollection collection3 = element3 as IElementCollection;
-                                                    if (collection3 != null)
-                                                    {
-                                                        int localsum = 0;
-                                                        bool found = false;
-                                                        foreach (var element4 in collection3.Elements)
-                                                        {
-                                                            INamedElement id = element4 as INamedElement;
-                                                            if (id != null)
-                                                            {
-                                                                if (id.Name == "\"id\"")
-                                                                {
-                                                                    int value;
-                                                                    if (int.TryParse(id.Value.Text, out value))
-                                                                    {
-                                                                        localsum += value;
-                                                                    }
-                                                                }
-                                                                if (id.Name == "\"label\"")
-                                                                {
-                                                                    found = true;
-                                                                }
-                                                            }
-                                                        }
-                                                        if (found)
-                                                        {
-                                                            sum += localsum;
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
+                                        localsum += value;
                                     }
                                 }
+                                if (id.Name == "\"label\"")
+                                {
+                                    found = true;
+                                }
+                            }
+                            if (found)
+                            {
+                                sum += localsum;
                             }
                         }
                     }
