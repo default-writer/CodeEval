@@ -258,13 +258,16 @@ namespace CodeEval
         [TestCase]
         public void Test201()
         {
-            Assert.AreEqual(Json.Parse("{\"a\": [null]}").Text, "{\"a\": [null]}");
+            IElement element = Json.Parse("{\"a\": [null]}");
+            Assert.AreNotEqual(null, element);
+            Assert.AreEqual("{\"a\": [null]}", element.Text);
         }
 
         [TestCase]
         public void Test202()
         {
-            Assert.AreEqual(Json.Parse("{\"a\": [null]"), null);
+            IElement element = Json.Parse("{\"a\": [null]");
+            Assert.AreEqual(null, element);
         }
 
         [TestCase]
