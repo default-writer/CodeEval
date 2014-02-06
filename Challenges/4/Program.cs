@@ -1,16 +1,7 @@
-﻿using System.Linq;
-
-#region
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 
-#endregion
-
-// ReSharper disable CheckNamespace
-
 namespace Challenges
-// ReSharper restore CheckNamespace
 {
     class Challenge
     {
@@ -21,7 +12,8 @@ namespace Challenges
             primes.Add(3);
             int primesSqrt = 1;
             int prime = 5;
-            while (primes.Count < 1000)
+            int palindrome = 1;
+            while (prime < 1000)
             {
                 bool isprime1 = true;
                 bool isprime2 = true;
@@ -43,10 +35,24 @@ namespace Challenges
                 if (isprime1)
                 {
                     primes.Add(prime);
+                    if (prime > 100)
+                    {
+                        if (prime % 10 == prime / 100 && prime > palindrome)
+                        {
+                            palindrome = prime;
+                        }
+                    }
                 }
                 if (isprime2)
                 {
                     primes.Add(prime + 2);
+                    if ((prime + 2)> 100)
+                    {
+                        if ((prime + 2) % 10 == (prime + 2) / 100 && (prime + 2) > palindrome)
+                        {
+                            palindrome = prime;
+                        }
+                    }
                 }
                 if (isprime1 || isprime2)
                 {
@@ -54,7 +60,7 @@ namespace Challenges
                 }
                 prime += 6;
             }
-            Console.WriteLine(primes.Sum());
+            Console.WriteLine(palindrome);
         }
     }
 }
