@@ -15,6 +15,37 @@ namespace Challenges
     {
         public void Main(string[] args)
         {
+            string[] lines = File.ReadAllLines(args[0]);
+            if (lines.Length > 20) return;
+            foreach (var line in lines)
+            {
+                string[] input = line.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                if (input.Length == 3)
+                {
+                    int A, B, N;
+                    if (!int.TryParse(input[0], out A) || !int.TryParse(input[1], out B) || !int.TryParse(input[2], out N))
+                    {
+                        continue;
+                    }
+                    Console.Write("1");
+                    for (int i = 2; i <= N; i++)
+                    {
+                        Console.Write(" ");
+                        bool case1 = false;
+                        bool case2 = false;
+                        if (i%A == 0) case1 = true;
+                        if (i%B == 0) case2 = true;
+                        if (case1) Console.Write("F");
+                        if (case2) Console.Write("B");
+                        if (case1 || case2)
+                        {
+                            continue;
+                        }
+                        Console.Write(i);
+                    }
+                }
+                Console.WriteLine();
+            }
         }
     }
 
