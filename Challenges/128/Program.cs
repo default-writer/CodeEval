@@ -22,7 +22,27 @@ namespace Challenges
             while (stringsLength < strings.Length)
             {
                 string[] words = strings[stringsLength++].Split(delims, StringSplitOptions.RemoveEmptyEntries);
-                int wordsLength = words.Length;                
+                int wordsLength = words.Length;
+                if (wordsLength > 0)
+                {
+                    int wordsCount = 1;
+                    string lastString = words[0];
+                    for (int i = 1; i < wordsLength; i++)
+                    {
+                        if (string.CompareOrdinal(lastString, words[i]) != 0)
+                        {
+                            Console.Write("{0} {1} ", wordsCount, lastString);
+                            lastString = words[i];
+                            wordsCount = 1;
+                        }
+                        else
+                        {
+                            wordsCount++;
+                        }
+                    }
+                    Console.Write("{0} {1} ", wordsCount, lastString);
+                }
+                Console.WriteLine();
             }
         }
     }
