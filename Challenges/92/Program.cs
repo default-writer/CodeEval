@@ -7,8 +7,7 @@ using System.IO;
 
 // ReSharper disable CheckNamespace
 
-namespace Challenges
-// ReSharper restore CheckNamespace
+namespace Challenges // ReSharper restore CheckNamespace
 {
     internal interface IChallenge
     {
@@ -19,29 +18,13 @@ namespace Challenges
     {
         public void Main(string[] args)
         {
-            if (args == null)
-            {
-                throw new Exception("args == null");
-            }
-            if (args.Length == 0)
-            {
-                throw new Exception("args.Length == 0");
-            }
-            if (args.Length > 1)
-            {
-                throw new Exception("args.Length > 1");
-            }
-            if (!File.Exists(args[0]))
-            {
-                throw new Exception("!File.Exists(args[0])");
-            }
-            var strings = File.ReadAllLines(args[0]);
-            var stringsLength = 0;
-            char[] delims = {' ', '\t'};
+            string[] strings = File.ReadAllLines(args[0]);
+            int stringsLength = 0;
+            char[] delims = { ' ', '\t' };
             while (stringsLength < strings.Length)
             {
-                var words = strings[stringsLength++].Split(delims);
-                var wordsLength = words.Length;
+                string[] words = strings[stringsLength++].Split(delims, StringSplitOptions.RemoveEmptyEntries);
+                int wordsLength = words.Length;
                 if (--wordsLength > 0)
                 {
                     Console.WriteLine(words[--wordsLength]);
@@ -52,21 +35,34 @@ namespace Challenges
 
     internal class Program
     {
-        private static int Main(string[] args)
-        {
-            return Run<Challenge>(args);
-        }
+        private static int Main(string[] args) { return Run<Challenge>(args); }
 
         private static int Run<T>(string[] args) where T : IChallenge, new()
         {
             try
             {
-                var t = new T();
+                if (args == null)
+                {
+                    throw new Exception("args == null");
+                }
+                if (args.Length == 0)
+                {
+                    throw new Exception("args.Length == 0");
+                }
+                if (args.Length > 1)
+                {
+                    throw new Exception("args.Length > 1");
+                }
+                if (!File.Exists(args[0]))
+                {
+                    throw new Exception("!File.Exists(args[0])");
+                } 
+                T t = new T();
                 t.Main(args);
             }
             catch (Exception ex)
             {
-                var exception = ex;
+                Exception exception = ex;
                 while (exception != null)
                 {
                     Console.Error.WriteLine(ex.Message);

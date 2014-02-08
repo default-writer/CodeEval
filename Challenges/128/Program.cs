@@ -1,5 +1,9 @@
-﻿using System;
+﻿#region
+
+using System;
 using System.IO;
+
+#endregion
 
 namespace Challenges
 {
@@ -12,16 +16,20 @@ namespace Challenges
     {
         public void Main(string[] args)
         {
-            var strings = File.ReadAllText(args[0]);
+            string[] strings = File.ReadAllLines(args[0]);
+            int stringsLength = 0;
+            char[] delims = { ' ', '\t' };
+            while (stringsLength < strings.Length)
+            {
+                string[] words = strings[stringsLength++].Split(delims, StringSplitOptions.RemoveEmptyEntries);
+                int wordsLength = words.Length;                
+            }
         }
     }
 
     internal class Program
     {
-        private static int Main(string[] args)
-        {
-            return Run<Challenge>(args);
-        }
+        private static int Main(string[] args) { return Run<Challenge>(args); }
 
         private static int Run<T>(string[] args) where T : IChallenge, new()
         {
@@ -43,12 +51,12 @@ namespace Challenges
                 {
                     throw new Exception("!File.Exists(args[0])");
                 }
-                var t = new T();
+                T t = new T();
                 t.Main(args);
             }
             catch (Exception ex)
             {
-                var exception = ex;
+                Exception exception = ex;
                 while (exception != null)
                 {
                     Console.Error.WriteLine(ex.Message);

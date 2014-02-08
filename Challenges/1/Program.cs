@@ -1,5 +1,9 @@
-﻿using System;
+﻿#region
+
+using System;
 using System.IO;
+
+#endregion
 
 namespace Challenges
 {
@@ -13,14 +17,19 @@ namespace Challenges
         public void Main(string[] args)
         {
             string[] lines = File.ReadAllLines(args[0]);
-            if (lines.Length > 20) return;
-            foreach (var line in lines)
+            if (lines.Length > 20)
             {
-                string[] input = line.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                return;
+            }
+            foreach (string line in lines)
+            {
+                string[] input = line.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                 if (input.Length == 3)
                 {
                     int A, B, N;
-                    if (!int.TryParse(input[0], out A) || !int.TryParse(input[1], out B) || !int.TryParse(input[2], out N))
+                    if (!int.TryParse(input[0], out A) ||
+                        !int.TryParse(input[1], out B) ||
+                        !int.TryParse(input[2], out N))
                     {
                         continue;
                     }
@@ -30,10 +39,22 @@ namespace Challenges
                         Console.Write(" ");
                         bool case1 = false;
                         bool case2 = false;
-                        if (i%A == 0) case1 = true;
-                        if (i%B == 0) case2 = true;
-                        if (case1) Console.Write("F");
-                        if (case2) Console.Write("B");
+                        if (i % A == 0)
+                        {
+                            case1 = true;
+                        }
+                        if (i % B == 0)
+                        {
+                            case2 = true;
+                        }
+                        if (case1)
+                        {
+                            Console.Write("F");
+                        }
+                        if (case2)
+                        {
+                            Console.Write("B");
+                        }
                         if (case1 || case2)
                         {
                             continue;
@@ -48,10 +69,7 @@ namespace Challenges
 
     internal class Program
     {
-        private static int Main(string[] args)
-        {
-            return Run<Challenge>(args);
-        }
+        private static int Main(string[] args) { return Run<Challenge>(args); }
 
         private static int Run<T>(string[] args) where T : IChallenge, new()
         {
@@ -73,12 +91,12 @@ namespace Challenges
                 {
                     throw new Exception("!File.Exists(args[0])");
                 }
-                var t = new T();
+                T t = new T();
                 t.Main(args);
             }
             catch (Exception ex)
             {
-                var exception = ex;
+                Exception exception = ex;
                 while (exception != null)
                 {
                     Console.Error.WriteLine(ex.Message);

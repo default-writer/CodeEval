@@ -1,5 +1,9 @@
-﻿using System;
+﻿#region
+
+using System;
 using System.Collections.Generic;
+
+#endregion
 
 namespace Challenges
 {
@@ -27,7 +31,8 @@ namespace Challenges
                     {
                         isprime2 = false;
                     }
-                    if (!isprime1 && !isprime2)
+                    if (!isprime1 &&
+                        !isprime2)
                     {
                         break;
                     }
@@ -37,7 +42,8 @@ namespace Challenges
                     primes.Add(prime);
                     if (prime > 100)
                     {
-                        if (prime % 10 == prime / 100 && prime > palindrome)
+                        if (prime % 10 == prime / 100 &&
+                            prime > palindrome)
                         {
                             palindrome = prime;
                         }
@@ -46,9 +52,10 @@ namespace Challenges
                 if (isprime2)
                 {
                     primes.Add(prime + 2);
-                    if ((prime + 2)> 100)
+                    if ((prime + 2) > 100)
                     {
-                        if ((prime + 2) % 10 == (prime + 2) / 100 && (prime + 2) > palindrome)
+                        if ((prime + 2) % 10 == (prime + 2) / 100 &&
+                            (prime + 2) > palindrome)
                         {
                             palindrome = prime;
                         }
@@ -56,7 +63,7 @@ namespace Challenges
                 }
                 if (isprime1 || isprime2)
                 {
-                    primesSqrt = (int)Math.Ceiling(Math.Sqrt(prime + 2));
+                    primesSqrt = (int) Math.Ceiling(Math.Sqrt(prime + 2));
                 }
                 prime += 6;
             }

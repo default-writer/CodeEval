@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿#region
+
+using System.Linq;
 
 #region
 
@@ -7,10 +9,11 @@ using System.Collections.Generic;
 
 #endregion
 
+#endregion
+
 // ReSharper disable CheckNamespace
 
-namespace Challenges
-// ReSharper restore CheckNamespace
+namespace Challenges // ReSharper restore CheckNamespace
 {
     class Challenge
     {
@@ -35,7 +38,8 @@ namespace Challenges
                     {
                         isprime2 = false;
                     }
-                    if (!isprime1 && !isprime2)
+                    if (!isprime1 &&
+                        !isprime2)
                     {
                         break;
                     }
@@ -50,7 +54,7 @@ namespace Challenges
                 }
                 if (isprime1 || isprime2)
                 {
-                    primesSqrt = (int)Math.Ceiling(Math.Sqrt(prime + 2));
+                    primesSqrt = (int) Math.Ceiling(Math.Sqrt(prime + 2));
                 }
                 prime += 6;
             }

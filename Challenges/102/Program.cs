@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿#region
+
+using System.Linq;
 
 #region
 
@@ -9,10 +11,11 @@ using System.Text;
 
 #endregion
 
+#endregion
+
 // ReSharper disable CheckNamespace
 
-namespace Challenges
-// ReSharper restore CheckNamespace
+namespace Challenges // ReSharper restore CheckNamespace
 {
     public interface IElement
     {
@@ -29,12 +32,12 @@ namespace Challenges
         void Main(string[] args);
     }
 
-
     public interface INamedElement : IElement
     {
         string Name { get; }
         IElement Value { get; }
     }
+
     public class Json
     {
         private static string _input;
@@ -46,8 +49,8 @@ namespace Challenges
             _position = 0;
             if (!string.IsNullOrWhiteSpace(text))
             {
-                var element = new JsonList();
-                var current = Advance(0);
+                JsonList element = new JsonList();
+                int current = Advance(0);
                 if (element.TryParse(current))
                 {
                     current = Advance(1);
@@ -59,6 +62,7 @@ namespace Challenges
             }
             return null;
         }
+
         public static void ParseMany(string text, IList<IElement> items)
         {
             _input = text;
@@ -67,8 +71,8 @@ namespace Challenges
             {
                 while (true)
                 {
-                    var element = new JsonList();
-                    var current = Advance(0);
+                    JsonList element = new JsonList();
+                    int current = Advance(0);
                     if (element.TryParse(current))
                     {
                         current = Advance(1);
@@ -88,7 +92,8 @@ namespace Challenges
         {
             while (current < _input.Length)
             {
-                if (!Any(current, ' ', '\r', '\n', '\t') || current + 1 == _input.Length)
+                if (!Any(current, ' ', '\r', '\n', '\t') ||
+                    current + 1 == _input.Length)
                 {
                     break;
                 }
@@ -100,34 +105,22 @@ namespace Challenges
         internal static int Advance(int offset)
         {
             _position += offset;
-            var current = Next(_position);
+            int current = Next(_position);
             _position = current;
             return current;
         }
 
-        internal static bool End(int current)
-        {
-            return !(current < _input.Length);
-        }
+        internal static bool End(int current) { return !(current < _input.Length); }
 
-        internal static bool Any(int current, string text)
-        {
-            return current < _input.Length && text.Any(t => _input[current] == t);
-        }
+        internal static bool Any(int current, string text) { return current < _input.Length && text.Any(t => _input[current] == t); }
 
-        internal static bool Is(int current, string text)
-        {
-            return !text.Where((t, i) => Not(current + i, t)).Any();
-        }
+        internal static bool Is(int current, string text) { return !text.Where((t, i) => Not(current + i, t)).Any(); }
 
-        internal static string Substring(int startIndex, int count)
-        {
-            return _input.Substring(startIndex, count);
-        }
+        internal static string Substring(int startIndex, int count) { return _input.Substring(startIndex, count); }
 
         internal static int Next(int current, char ch)
         {
-            var previous = current;
+            int previous = current;
             while (current < _input.Length)
             {
                 if (Is(current, ch))
@@ -139,36 +132,60 @@ namespace Challenges
             return previous;
         }
 
-        internal static bool Is(int current, char ch1)
-        {
-            return current < _input.Length && _input[current] == ch1;
-        }
+        internal static bool Is(int current, char ch1) { return current < _input.Length && _input[current] == ch1; }
 
-        internal static bool Not(int current, char ch1)
-        {
-            return current < _input.Length && _input[current] != ch1;
-        }
+        internal static bool Not(int current, char ch1) { return current < _input.Length && _input[current] != ch1; }
 
-        private static bool Any(int current, char ch1, char ch2, char ch3, char ch4)
-        {
-            return _input[current] == ch1 || _input[current] == ch2 || _input[current] == ch3 || _input[current] == ch4;
-        }
+        private static bool Any(int current, char ch1, char ch2, char ch3, char ch4) { return _input[current] == ch1 || _input[current] == ch2 || _input[current] == ch3 || _input[current] == ch4; }
 
+        abstract class Collection : Element, IElementCollection
+        {
+            protected readonly char Close;
+            protected readonly char Open;
+
+            private readonly List<IElement> _elements = new List<IElement>();
+
+            protected Collection(char open, char close)
+            {
+                Open = open;
+                Close = close;
+            }
+
+            public IEnumerable<IElement> Elements { get { return _elements; } }
+
+            public override string Text
+            {
+                get
+                {
+                    StringBuilder sb = new StringBuilder();
+                    sb.Append(Open);
+                    if (_elements.Count > 0)
+                    {
+                        sb.AppendFormat("{0}", _elements[0].Text);
+                        for (int i = 1; i < _elements.Count; i++)
+                        {
+                            sb.AppendFormat(", {0}", _elements[i].Text);
+                        }
+                        sb.Append(Close);
+                    }
+                    return sb.ToString();
+                }
+            }
+
+            protected void Add(IElement element) { _elements.Add(element); }
+        }
 
         public abstract class Element : IElement
         {
             public abstract string Text { get; }
 
-            public override string ToString()
-            {
-                return Text;
-            }
+            public override string ToString() { return Text; }
 
             public abstract bool Parse();
 
             internal bool TryParse(int current)
             {
-                var previous = _position;
+                int previous = _position;
                 _position = current;
                 if (!End(current))
                 {
@@ -188,7 +205,7 @@ namespace Challenges
 
             public override bool Parse()
             {
-                var current = Advance(0);
+                int current = Advance(0);
                 if (Not(current, Open))
                 {
                     return false;
@@ -196,7 +213,7 @@ namespace Challenges
                 current = Advance(1);
                 while (true)
                 {
-                    var value = new JsonValue();
+                    JsonValue value = new JsonValue();
                     if (value.TryParse(current))
                     {
                         current = Advance(1);
@@ -208,7 +225,7 @@ namespace Challenges
                         }
                         return Is(current, Close);
                     }
-                    var name = new JsonName();
+                    JsonName name = new JsonName();
                     if (name.TryParse(current))
                     {
                         current = Advance(1);
@@ -220,7 +237,7 @@ namespace Challenges
                         }
                         return Is(current, Close);
                     }
-                    var constant = new JsonConstant("null");
+                    JsonConstant constant = new JsonConstant("null");
                     if (constant.TryParse(current))
                     {
                         current = Advance(1);
@@ -232,7 +249,7 @@ namespace Challenges
                         }
                         return Is(current, Close);
                     }
-                    var element = new JsonList();
+                    JsonList element = new JsonList();
                     if (element.TryParse(current))
                     {
                         current = Advance(1);
@@ -253,19 +270,13 @@ namespace Challenges
         {
             private readonly string _content;
 
-            public JsonConstant(string content)
-            {
-                _content = content;
-            }
+            public JsonConstant(string content) { _content = content; }
 
-            public override string Text
-            {
-                get { return string.Format("{0}", _content); }
-            }
+            public override string Text { get { return string.Format("{0}", _content); } }
 
             public override bool Parse()
             {
-                var current = Advance(0);
+                int current = Advance(0);
                 if (Is(current, _content))
                 {
                     Advance(_content.Length - 1);
@@ -281,7 +292,7 @@ namespace Challenges
 
             public override bool Parse()
             {
-                var current = Advance(0);
+                int current = Advance(0);
                 if (Not(current, Open))
                 {
                     return false;
@@ -289,7 +300,7 @@ namespace Challenges
                 current = Advance(1);
                 while (true)
                 {
-                    var name = new JsonName();
+                    JsonName name = new JsonName();
                     if (!name.TryParse(current))
                     {
                         return false;
@@ -298,7 +309,7 @@ namespace Challenges
                     if (Is(current, ':'))
                     {
                         current = Advance(1);
-                        var value = new JsonValue();
+                        JsonValue value = new JsonValue();
                         if (value.TryParse(current))
                         {
                             current = Advance(1);
@@ -310,7 +321,7 @@ namespace Challenges
                             }
                             return Is(current, Close);
                         }
-                        var str = new JsonName();
+                        JsonName str = new JsonName();
                         if (str.TryParse(current))
                         {
                             current = Advance(1);
@@ -322,7 +333,7 @@ namespace Challenges
                             }
                             return Is(current, Close);
                         }
-                        var array = new JsonArray();
+                        JsonArray array = new JsonArray();
                         if (array.TryParse(current))
                         {
                             current = Advance(1);
@@ -334,7 +345,7 @@ namespace Challenges
                             }
                             return Is(current, Close);
                         }
-                        var element = new JsonList();
+                        JsonList element = new JsonList();
                         if (element.TryParse(current))
                         {
                             current = Advance(1);
@@ -353,64 +364,18 @@ namespace Challenges
             }
         }
 
-        abstract class Collection : Element, IElementCollection
-        {
-            protected readonly char Close;
-            protected readonly char Open;
-
-            private readonly List<IElement> _elements = new List<IElement>();
-
-            protected Collection(char open, char close)
-            {
-                Open = open;
-                Close = close;
-            }
-
-            public IEnumerable<IElement> Elements
-            {
-                get { return _elements; }
-            }
-
-            protected void Add(IElement element)
-            {
-                _elements.Add(element);
-            }
-
-            public override string Text
-            {
-                get
-                {
-                    var sb = new StringBuilder();
-                    sb.Append(Open);
-                    if (_elements.Count > 0)
-                    {
-                        sb.AppendFormat("{0}", _elements[0].Text);
-                        for (var i = 1; i < _elements.Count; i++)
-                        {
-                            sb.AppendFormat(", {0}", _elements[i].Text);
-                        }
-                        sb.Append(Close);
-                    }
-                    return sb.ToString();
-                }
-            }
-        }
-
         class JsonName : Element
         {
             private string _content;
 
-            public override string Text
-            {
-                get { return string.Format("\"{0}\"", _content); }
-            }
+            public override string Text { get { return string.Format("\"{0}\"", _content); } }
 
             public override bool Parse()
             {
-                var current = Advance(0);
+                int current = Advance(0);
                 if (Is(current, '"'))
                 {
-                    var next = Next(current + 1, '"') - 1;
+                    int next = Next(current + 1, '"') - 1;
                     if (next > current)
                     {
                         _content = Substring(current + 1, next - current);
@@ -435,29 +400,17 @@ namespace Challenges
 
             #region Члены INamedElement
 
-            public string Name
-            {
-                get { return _name.Text; }
-            }
+            public string Name { get { return _name.Text; } }
 
-            public IElement Value
-            {
-                get { return _value; }
-            }
+            public IElement Value { get { return _value; } }
 
             #endregion
 
             #region Члены IElement
 
-            public string Text
-            {
-                get { return string.Format("{0}: {1}", _name.Text, _value.Text); }
-            }
+            public string Text { get { return string.Format("{0}: {1}", _name.Text, _value.Text); } }
 
-            public override string ToString()
-            {
-                return Text;
-            }
+            public override string ToString() { return Text; }
 
             #endregion
         }
@@ -466,15 +419,12 @@ namespace Challenges
         {
             private string _content;
 
-            public override string Text
-            {
-                get { return string.Format("{0}", _content); }
-            }
+            public override string Text { get { return string.Format("{0}", _content); } }
 
             public override bool Parse()
             {
-                var current = Advance(0);
-                var start = current;
+                int current = Advance(0);
+                int start = current;
                 while (Any(current, "0123456789"))
                 {
                     current++;
@@ -498,42 +448,43 @@ namespace Challenges
     {
         public void Main(string[] args)
         {
-            var strings = File.ReadAllText(args[0]);
+            string strings = File.ReadAllText(args[0]);
             List<IElement> elements = new List<IElement>();
             Json.ParseMany(strings, elements);
-            foreach (var e in elements)
+            foreach (IElement e in elements)
             {
-                var query = e as IElementCollection;
+                IElementCollection query = e as IElementCollection;
                 if (query == null)
                 {
                     continue;
                 }
                 int sum = 0;
-                foreach (var element in query.Elements)
+                foreach (IElement element in query.Elements)
                 {
-                    var n = element as INamedElement;
+                    INamedElement n = element as INamedElement;
                     if (n == null)
                     {
                         continue;
                     }
-                    var collection1 = n.Value as IElementCollection;
+                    IElementCollection collection1 = n.Value as IElementCollection;
                     if (collection1 == null)
                     {
                         continue;
                     }
-                    foreach (var element2 in collection1.Elements)
+                    foreach (IElement element2 in collection1.Elements)
                     {
-                        var items = element2 as INamedElement;
-                        if (items == null || items.Name != "\"items\"")
+                        INamedElement items = element2 as INamedElement;
+                        if (items == null ||
+                            items.Name != "\"items\"")
                         {
                             continue;
                         }
-                        var colleciton2 = items.Value as IElementCollection;
+                        IElementCollection colleciton2 = items.Value as IElementCollection;
                         if (colleciton2 == null)
                         {
                             continue;
                         }
-                        foreach (var element3 in colleciton2.Elements)
+                        foreach (IElement element3 in colleciton2.Elements)
                         {
                             IElementCollection collection3 = element3 as IElementCollection;
                             if (collection3 == null)
@@ -542,7 +493,7 @@ namespace Challenges
                             }
                             int localsum = 0;
                             bool found = false;
-                            foreach (var element4 in collection3.Elements)
+                            foreach (IElement element4 in collection3.Elements)
                             {
                                 INamedElement id = element4 as INamedElement;
                                 if (id == null)
@@ -576,10 +527,7 @@ namespace Challenges
 
     internal class Program
     {
-        private static int Main(string[] args)
-        {
-            return Run<Challenge>(args);
-        }
+        private static int Main(string[] args) { return Run<Challenge>(args); }
 
         private static int Run<T>(string[] args) where T : IChallenge, new()
         {
@@ -601,12 +549,12 @@ namespace Challenges
                 {
                     throw new Exception("!File.Exists(args[0])");
                 }
-                var t = new T();
+                T t = new T();
                 t.Main(args);
             }
             catch (Exception ex)
             {
-                var exception = ex;
+                Exception exception = ex;
                 while (exception != null)
                 {
                     Console.Error.WriteLine(ex.Message);
