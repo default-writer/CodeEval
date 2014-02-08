@@ -498,22 +498,6 @@ namespace Challenges
     {
         public void Main(string[] args)
         {
-            if (args == null)
-            {
-                throw new Exception("args == null");
-            }
-            if (args.Length == 0)
-            {
-                throw new Exception("args.Length == 0");
-            }
-            if (args.Length > 1)
-            {
-                throw new Exception("args.Length > 1");
-            }
-            if (!File.Exists(args[0]))
-            {
-                throw new Exception("!File.Exists(args[0])");
-            }
             var strings = File.ReadAllText(args[0]);
             List<IElement> elements = new List<IElement>();
             Json.ParseMany(strings, elements);
