@@ -1,6 +1,9 @@
 ﻿#region
 
 using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
 using System.IO;
 
 #endregion
@@ -18,19 +21,63 @@ namespace Challenges
         {
             string[] strings = File.ReadAllLines(args[0]);
             int stringsLength = 0;
-            char[] delims = { ' ', '\t' };
+            char[] delims = { ' ', '\r', '\n', '\t' };
             while (stringsLength < strings.Length)
             {
-                string[] words = strings[stringsLength++].Split(delims, StringSplitOptions.RemoveEmptyEntries);
-                int wordsLength = words.Length;
+                List<double> words = strings[stringsLength++].Split(delims).Select(OnFunc).ToList();
+                int wordsLength = words.Count;
                 if (wordsLength > 0)
                 {
-                    for (int i = 0; i < wordsLength; i++)
+                    words.Sort();
+                    Quicksort(words.ToArray(), 0, wordsLength - 1, Comparer<double>.Default);
+                    Console.Write("{0}", words[0].ToString(CultureInfo.InvariantCulture));
+                    for (int i = 1; i < wordsLength; i++)
                     {
-                        Console.Write("{0} ", words[wordsLength - 1 - i]);
+                        Console.Write(" {0}", words[i].ToString(CultureInfo.InvariantCulture));
                     }
                 }
                 Console.WriteLine();
+            }
+        }
+
+        double OnFunc(string s)
+        {
+            return double.Parse(s, CultureInfo.InvariantCulture);
+        }
+
+
+        void Quicksort<T>(T[] array, int left, int right, IComparer<T> comparer)
+        {
+            if (left < right)
+            {
+                int index = Partition(array, left, (left + right) / 2, right, comparer);
+                Quicksort(array, left, index - 1, comparer);
+                Quicksort(array, index + 1, right, comparer);
+            }
+        }
+
+        int Partition<T>(T[] array, int left, int pivot, int right, IComparer<T> comparer)
+        {
+            T value = array[pivot];
+            Swap(array, pivot, right);
+            for (int i = left; i < right; i++)
+            {
+                if (comparer.Compare(array[i], value) <= 0)
+                {
+                    Swap(array, i, left++);
+                }
+            }
+            Swap(array, left, right);
+            return left;
+        }
+
+        void Swap<T>(T[] array, int p1, int p2)
+        {
+            if (p1 != p2)
+            {
+                T temp = array[p1];
+                array[p1] = array[p2];
+                array[p2] = temp;
             }
         }
     }
