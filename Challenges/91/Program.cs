@@ -17,42 +17,67 @@ namespace Challenges
 
     internal class Challenge : IChallenge
     {
+        public class Pair
+        {
+            public static IComparer<Pair> Comparer = new PairComparer(); 
+            public string text;
+            public double data;
+            class PairComparer : IComparer<Pair>
+            {
+                public int Compare(Pair x, Pair y) 
+                {
+                    if (x.data < y.data) 
+                        return -1;
+                    if (x.data > y.data)
+                        return 1;
+                    return 0;
+                }
+            }
+        }
+
+
         public void Main(string[] args)
         {
             string[] strings = File.ReadAllLines(args[0]);
             int stringsLength = 0;
-            char[] delims = { ' ', '\r', '\n', '\t' };
+            char[] delims = { ' ' };
             while (stringsLength < strings.Length)
             {
-                List<double> words = strings[stringsLength++].Split(delims).Select(OnFunc).ToList();
-                int wordsLength = words.Count;
+                Pair[] words = strings[stringsLength++].Split(delims).Select(OnFunc).ToArray();
+                int wordsLength = words.Length;
                 if (wordsLength > 0)
                 {
-                    words.Sort();
-                    Quicksort(words.ToArray(), 0, wordsLength - 1, Comparer<double>.Default);
-                    Console.Write("{0}", words[0].ToString(CultureInfo.InvariantCulture));
+                    Quicksort(words, Pair.Comparer);
+                    Console.Write("{0}", words[0].text);
                     for (int i = 1; i < wordsLength; i++)
                     {
-                        Console.Write(" {0}", words[i].ToString(CultureInfo.InvariantCulture));
+                        Console.Write(" {0}", words[i].text);
                     }
                 }
                 Console.WriteLine();
             }
         }
 
-        double OnFunc(string s)
+        Pair OnFunc(string s) { return new Pair() { data = double.Parse(s, CultureInfo.InvariantCulture), text = s }; }
+
+        class PartitionItem
         {
-            return double.Parse(s, CultureInfo.InvariantCulture);
+            public int left;
+            public int right;
         }
 
-
-        void Quicksort<T>(T[] array, int left, int right, IComparer<T> comparer)
+        void Quicksort<T>(T[] array, IComparer<T> comparer)
         {
-            if (left < right)
+            Stack<PartitionItem> list = new Stack<PartitionItem>();
+            list.Push(new PartitionItem() { left = 0, right = array.Length - 1 });
+            while (list.Count > 0)
             {
+                PartitionItem p = list.Pop();
+                int left = p.left;
+                int right = p.right;
                 int index = Partition(array, left, (left + right) / 2, right, comparer);
-                Quicksort(array, left, index - 1, comparer);
-                Quicksort(array, index + 1, right, comparer);
+                if (left < index - 1) list.Push(new PartitionItem() { left = left, right = index - 1 });
+                if (index + 1 < right) list.Push(new PartitionItem() { left = index + 1, right = right });
             }
         }
 
